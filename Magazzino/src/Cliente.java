@@ -9,26 +9,29 @@ public class Cliente extends Thread {
 
     @Override
     public void run() {
-        do{
+        synchronized (magazzino) {
+            do {
+                try {
+                    magazzino.wait();
+                } catch (InterruptedException e) {
+                    System.err.println(getName() + " Interrotto");
+                }
+            } while (magazzino.scrivibile);
+            do {
+                if (magazzino.isEmpty())
+                    try {
+                        magazzino.wait();
+                    } catch (InterruptedException e) {
+                        System.err.println(getName() + " Interrotto");
+                    }
+            } while (!magazzino.scrivibile);
+            //noinspection DataFlowIssue
+            magazzino.scrivibile = true;
             try {
                 magazzino.wait();
             } catch (InterruptedException e) {
                 System.err.println(getName() + " Interrotto");
             }
-        }while(magazzino.scrivibile);
-        do{
-            if(magazzino.rimuoviProdotto(prodotto) == Magazzino.scortaOggetto.FINITO || magazzino.rimuoviProdotto(prodotto) == Magazzino.scortaOggetto.NON_PRESENTE)
-                try{
-                    magazzino.wait();
-                }catch(InterruptedException e){
-                    System.err.println(getName() + " Interrotto");
-                }
-        }while(!magazzino.scrivibile);
-        magazzino.scrivibile = true;
-        try {
-            magazzino.wait();
-        } catch (InterruptedException e) {
-            System.err.println(getName() + " Interrotto");
         }
     }
 }

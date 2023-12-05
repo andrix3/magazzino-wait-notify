@@ -8,7 +8,7 @@ public class Magazziniere extends Thread {
     }
 
     @Override
-    public void run() {
+    public synchronized void run() {
         try {
             magazzino.aggiungiProdotto(prodotto);
         } catch (InterruptedException e) {
