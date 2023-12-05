@@ -18,11 +18,11 @@ public class Magazzino {
                 System.err.println("I prodotti sono finiti");
                 return;
             }
-            if(contains(prodotto) == 1){
+            if(contains(prodotto) == -1){
                 System.err.println("Prodotto non esistente");
                 return;
             }
-            
+            scorta[contains(prodotto)] = null;
         }
     }
 
