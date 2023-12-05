@@ -1,12 +1,17 @@
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         Magazzino magazzino = new Magazzino();
-        new Magazziniere("pane", 5, magazzino).start();
+        new Magazziniere("pane", magazzino).start();
 
-        new Magazziniere("pane", 5, magazzino).start();
+        new Magazziniere("pane", magazzino).start();
 
-        new Cliente("pane", 4, magazzino).start();
-        new Cliente("pane", 4, magazzino).start();
-        new Cliente("pane", 4, magazzino).start();
+        new Cliente("pane", magazzino).start();
+        new Cliente("pane", magazzino).start();
+        new Cliente("pane", magazzino).start();
+
+        Thread.sleep(5000);
+
+
+        new Magazziniere("pane", magazzino).start();
     }
 }

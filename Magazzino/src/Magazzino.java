@@ -1,54 +1,61 @@
-import java.util.HashMap;
+import java.util.Objects;
 
 public class Magazzino {
-    public final HashMap<String, Integer> prodotti;
-    public boolean scrivibile = false;
-
+    private final String[] scorta;
     public Magazzino() {
-        this.prodotti = new HashMap<>();
+        this.scorta = new String[10];
     }
 
-    public void aggiungiProdotto(String prodotto, int quantita) throws InterruptedException {
-        synchronized (prodotti) {
+    public void aggiungiProdotto(String prodotto) {
+        synchronized (scorta) {
             try {
-                while (scrivibile)
-                    prodotti.wait();
-
-            } finally {
-                if (prodotti.containsKey(prodotto)) {
-                    prodotti.replace(prodotto, prodotti.get(prodotto), prodotti.get(prodotto) + quantita);
-                } else {
-                    prodotti.put(prodotto, quantita);
+                while (findEmpty() == -1) {
+                    System.err.println("Il Magazzino è pieno");
+                    scorta.wait();
                 }
-
-                System.out.println("aggiunti " + quantita + " " + prodotto + " al magazzino.");
-            }
-
-            scrivibile = true;
-            prodotti.notifyAll();
+                    scorta[findEmpty()] = prodotto;
+                    System.out.println("aggiunto " + prodotto);
+                    scorta.notifyAll();
+            } catch (InterruptedException ignore) {}
         }
     }
 
-    public void rimuoviProdotto(String prodotto, int quantita) throws InterruptedException {
-        synchronized (prodotti) {
+    public void rimuoviProdotto(String prodotto) {
+        synchronized (scorta) {
             try {
-                while (!scrivibile)
-                    prodotti.wait();
-            } finally {
-                if (prodotti.containsKey(prodotto)) {
-                    if (prodotti.get(prodotto) >= quantita) {
-                        prodotti.replace(prodotto, prodotti.get(prodotto), prodotti.get(prodotto) - quantita);
-
-                    } else
-                        System.out.println("non ci sono abbastanza " + prodotto);
-                } else {
-                    prodotti.put(prodotto, quantita);
+                while (isEmpty() || contains(prodotto) == -1) {
+                    System.err.println("I prodotti sono finiti");
+                    scorta.wait();
                 }
-                System.out.println("venduti " + quantita + " " + prodotto);
-            }
-
-            scrivibile = false;
-            prodotti.notifyAll();
+                    scorta[contains(prodotto)] = null;
+                    System.out.println("rimosso " + prodotto);
+                    scorta.notifyAll();
+            } catch (InterruptedException /*| ArrayIndexOutOfBoundsException*/ ignore) {}
         }
+    }
+
+    private boolean isEmpty() {
+        for (String s : scorta) {
+            if (s != null) return false;
+        }
+        return true;
+    }
+
+    private int contains(String nomeProdotto) {
+        int i = 0;
+        for (String s : scorta) {
+            if (Objects.equals(s, nomeProdotto)) return i;
+            i++;
+        }
+        return -1;
+    }
+
+    private int findEmpty() {
+        int i = 0;
+        for (String s : scorta) {
+            if (s == null) return i;
+            i++;
+        }
+        return -1;
     }
 }
