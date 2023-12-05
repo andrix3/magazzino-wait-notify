@@ -1,61 +1,40 @@
 import java.util.Objects;
 
 public class Magazzino {
-    public enum Scorta_oggetto {
-        FINITO, PRESENTE, NON_PRESENTE, PIENO
-    }
-
-    ;
     private final String[] scorta;
-    public boolean scrivibile = true;
-
     public Magazzino() {
         this.scorta = new String[10];
     }
 
-    public void aggiungiProdotto(String prodotto) throws InterruptedException {
+    public void aggiungiProdotto(String prodotto) {
         synchronized (scorta) {
-            if (findEmpty() == -1) {
-                System.err.println("Il Magazzino è pieno");
-                return;
-            }
-            scorta[findEmpty()] = prodotto;
-            if (findEmpty() == -1) {
-                System.err.println("Il magazzino adesso è pieno");
-                try {
+            try {
+                while (findEmpty() == -1) {
+                    System.err.println("Il Magazzino è pieno");
                     scorta.wait();
-                }catch (InterruptedException ignore) {
-
                 }
-            }
+                    scorta[findEmpty()] = prodotto;
+                    System.out.println("aggiunto " + prodotto);
+                    scorta.notifyAll();
+            } catch (InterruptedException ignore) {}
         }
     }
 
     public void rimuoviProdotto(String prodotto) {
         synchronized (scorta) {
-            if (isEmpty()) {
-                System.err.println("I prodotti sono finiti");
-                try {
+            try {
+                while (isEmpty() || contains(prodotto) == -1) {
+                    System.err.println("I prodotti sono finiti");
                     scorta.wait();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
                 }
-                return;
-            }
-            if (contains(prodotto) == -1) {
-                System.err.println("Prodotto non esistente");
-                return;
-            }
-            scorta[contains(prodotto)] = null;
-            if (contains(prodotto) == -1) {
-                System.err.println("Scorta di " + prodotto + " finita");
-                return;
-            }
+                    scorta[contains(prodotto)] = null;
+                    System.out.println("rimosso " + prodotto);
+                    scorta.notifyAll();
+            } catch (InterruptedException /*| ArrayIndexOutOfBoundsException*/ ignore) {}
         }
-        return;
     }
 
-    public boolean isEmpty() {
+    private boolean isEmpty() {
         for (String s : scorta) {
             if (s != null) return false;
         }

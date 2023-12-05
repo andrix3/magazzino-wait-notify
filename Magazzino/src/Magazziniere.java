@@ -9,10 +9,6 @@ public class Magazziniere extends Thread {
 
     @Override
     public synchronized void run() {
-        try {
             magazzino.aggiungiProdotto(prodotto);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
     }
 }
